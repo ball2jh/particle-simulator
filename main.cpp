@@ -22,7 +22,6 @@ __global__ void updateParticlePositions(Particle* particles, float deltaTime, in
 
 int main(int argc,  char** argv) {
     int devID = findCudaDevice(argc, (const char**)argv);
-    printf("devID: %d\n", devID);
 
     int numParticles = 50000000;
     Particle* host_particles = new Particle[numParticles];
