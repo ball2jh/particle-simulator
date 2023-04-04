@@ -1,5 +1,11 @@
 {
     "C_Cpp.default.includePath": [
         "/usr/local/cuda-11.2/include"
-    ]
+    ],
+    "files.associations": {
+        "vector": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "unordered_map": "cpp"
+    }
 }
