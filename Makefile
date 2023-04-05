@@ -1,4 +1,4 @@
-objects = main.o
+objects = src/main.o
 
 all: $(objects)
 		nvcc -gencode=arch=compute_52,code=\"sm_52,compute_52\" $(objects) -o app -L/usr/lib/x86_64-linux-gnu -lGLEW -lGL -lGLU -lglut
