@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "helpers/helper_cuda.h"
-#include "helpers/helper_gl.h"
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 
 #include <cuda_gl_interop.h>
@@ -22,7 +22,6 @@ void *d_vbo_buffer = NULL;
 bool initGL(int *argc, char **argv);
 void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
                unsigned int vbo_res_flags);
-void deleteVBO(GLuint *vbo, struct cudaGraphicsResource *vbo_res);
 
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -41,8 +40,6 @@ bool initGL(int *argc, char **argv)
     glutCreateWindow("Particle Simulator");
     glutDisplayFunc(display);
 
-    SDK_CHECK_ERROR_GL();
-
     return true;
 }
 
@@ -57,20 +54,17 @@ void createVBO(GLuint *vertex_buffer, struct cudaGraphicsResource **vbo_res,
     unsigned int size = 2 * sizeof(float);
     glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    SDK_CHECK_ERROR_GL();
-
     // register this buffer object with CUDA
     cudaGraphicsGLRegisterBuffer(vbo_res, *vertex_buffer, vbo_res_flags);
-
-    SDK_CHECK_ERROR_GL();
 }
 
 int main(int argc,  char** argv) {
-    int cuda_device = findCudaDevice(argc, (const char **)argv);
+    const int cuda_device = findCudaDevice(argc, (const char **)argv);
     cudaDeviceProp deviceProps;
     checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
 
