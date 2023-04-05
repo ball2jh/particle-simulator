@@ -3,7 +3,7 @@
 
 #include <cuda_runtime.h>
 
-#include "vector.h"
+#include "vector.cuh"
 
 class Particle {
 public:
