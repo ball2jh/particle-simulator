@@ -8,11 +8,6 @@
 #include <cuda_gl_interop.h>
 #include <string>
 
-struct ShaderProgramSource {
-    std::string vertex_source;
-    std::string fragment_source;
-};
-
 class Renderer2D {
 public:
     static void init();
