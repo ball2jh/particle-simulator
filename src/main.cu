@@ -17,6 +17,7 @@
 #include "renderer/vertex_buffer.h"
 #include "renderer/index_buffer.h"
 #include "renderer/vertex_array.h"
+#include "renderer/vertex_buffer_layout.h"
 
 #define MAX_PARTICLES_PER_NODE 4
 // vbo variables
@@ -70,12 +71,12 @@ int main(int argc, char** argv) {
 
     initGL(&argc, argv);
 
-    //VertexArray vertex_array = VertexArray();
-    //vertex_array.bind();
-    
     Shader shader = Shader("res/shaders/basic.shader");
     shader.bind();
 
+    VertexArray vertex_array = VertexArray();
+    vertex_array.bind();
+    
     VertexBuffer vertex_buffer = VertexBuffer(8 * sizeof(float));
 
     float vertices[] = {
@@ -87,12 +88,13 @@ int main(int argc, char** argv) {
 
     vertex_buffer.set_data(vertices, 8 * sizeof(float));
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    VertexBufferLayout layout;
+    layout.push<float>(2);
+    vertex_array.add_buffer(vertex_buffer, layout);
 
     uint32_t indeces[] = {
         0, 1, 2,
-        2, 3, 0
+        2, 3, 1
     };
 
     IndexBuffer index_buffer = IndexBuffer(indeces, 6);
