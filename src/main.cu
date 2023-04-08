@@ -18,24 +18,25 @@
 #include "renderer/index_buffer.h"
 #include "renderer/vertex_array.h"
 #include "renderer/vertex_buffer_layout.h"
+#include "renderer/renderer.h"
 
 #define MAX_PARTICLES_PER_NODE 4
 // vbo variables
+Renderer renderer;
 
-GLuint vertex_buffer;
-GLuint index_buffer;
+VertexArray* vertex_array;
+IndexBuffer* index_buffer;
+Shader* shader;
 struct cudaGraphicsResource *cuda_vbo_resource;
 void *d_vbo_buffer = NULL;
 
 // GL functionality
 bool initGL(int *argc, char **argv);
-void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
-               unsigned int vbo_res_flags);
 
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    renderer.draw(*vertex_array, *index_buffer, *shader);
 
     // Swap buffers
     glutSwapBuffers();
@@ -71,12 +72,8 @@ int main(int argc, char** argv) {
 
     initGL(&argc, argv);
 
-    Shader shader = Shader("res/shaders/basic.shader");
-    shader.bind();
-
-    VertexArray vertex_array = VertexArray();
-    vertex_array.bind();
-    
+    shader = new Shader("res/shaders/basic.shader");
+    vertex_array = new VertexArray();
     VertexBuffer vertex_buffer = VertexBuffer(8 * sizeof(float));
 
     float vertices[] = {
@@ -90,19 +87,18 @@ int main(int argc, char** argv) {
 
     VertexBufferLayout layout;
     layout.push<float>(2);
-    vertex_array.add_buffer(vertex_buffer, layout);
+    vertex_array->add_buffer(vertex_buffer, layout);
 
     uint32_t indeces[] = {
         0, 1, 2,
         2, 3, 1
     };
 
-    IndexBuffer index_buffer = IndexBuffer(indeces, 6);
-    index_buffer.bind();
+    index_buffer = new IndexBuffer(indeces, 6);
+
+    Renderer renderer;
 
     glutMainLoop();
-
-    //glDeleteProgram(shader)
 
     return 0;
 }

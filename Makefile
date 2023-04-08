@@ -1,4 +1,4 @@
-objects = src/main.o src/renderer/shader.o src/renderer/vertex_buffer.o src/renderer/index_buffer.o src/renderer/vertex_array.o src/renderer/vertex_buffer_layout.o
+objects = src/main.o src/renderer/shader.o src/renderer/vertex_buffer.o src/renderer/index_buffer.o src/renderer/vertex_array.o src/renderer/vertex_buffer_layout.o src/renderer/renderer.o
 all: $(objects)
 		nvcc -gencode=arch=compute_52,code=\"sm_52,compute_52\" $(objects) -o app -L/usr/lib/x86_64-linux-gnu -lGLEW -lGL -lGLU -lglut
 
