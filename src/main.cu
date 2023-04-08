@@ -14,12 +14,15 @@
 #include <cuda_gl_interop.h>
 
 #include "renderer/shader.h"
-#include "renderer/buffer.h"
+#include "renderer/vertex_buffer.h"
+#include "renderer/index_buffer.h"
+#include "renderer/vertex_array.h"
 
 #define MAX_PARTICLES_PER_NODE 4
 // vbo variables
 
 GLuint vertex_buffer;
+GLuint index_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
 void *d_vbo_buffer = NULL;
 
@@ -31,7 +34,7 @@ void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
     // Swap buffers
     glutSwapBuffers();
@@ -44,6 +47,10 @@ bool initGL(int *argc, char **argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
     glutDisplayFunc(display);
+
+    // Set openGl version
+    glutInitContextVersion(4, 6);
+    glutInitContextProfile(GLUT_CORE_PROFILE);
 
     // Initialize GLEW
     glewExperimental = GL_TRUE;
@@ -63,9 +70,13 @@ int main(int argc, char** argv) {
 
     initGL(&argc, argv);
 
-    //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
+    //VertexArray vertex_array = VertexArray();
+    //vertex_array.bind();
+    
+    Shader shader = Shader("res/shaders/basic.shader");
+    shader.bind();
 
-    VertexBuffer buffer = VertexBuffer(8 * sizeof(float));
+    VertexBuffer vertex_buffer = VertexBuffer(8 * sizeof(float));
 
     float vertices[] = {
         -0.5f, -0.5f,
@@ -73,14 +84,19 @@ int main(int argc, char** argv) {
          0.5f,  0.5f,
         -0.5f,  0.5f
     };
-    buffer.set_data(vertices, 8 * sizeof(float));
+
+    vertex_buffer.set_data(vertices, 8 * sizeof(float));
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
+    uint32_t indeces[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
 
-    Shader shader = Shader("res/shaders/basic.shader");
-    shader.bind();
+    IndexBuffer index_buffer = IndexBuffer(indeces, 6);
+    index_buffer.bind();
 
     glutMainLoop();
 

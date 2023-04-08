@@ -70,6 +70,9 @@
         "variant": "cpp",
         "__nullptr": "cpp",
         "__node_handle": "cpp",
-        "__config": "cpp"
+        "__config": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "numbers": "cpp"
     }
 }

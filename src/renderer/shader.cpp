@@ -7,7 +7,6 @@
 Shader::Shader(const std::string& filepath) {
     std::pair<std::string, std::string> shaderSources = parseShader(filepath);
     vertex_src = shaderSources.first;
-    std::cout << vertex_src << std::endl;
     fragment_src = shaderSources.second;
     create_program();
 }
@@ -23,8 +22,6 @@ Shader::~Shader() {
 
 void Shader::bind() const {
     glUseProgram(shader_id);
-    GLint iResolution = glGetUniformLocation(shader_id, "iResolution");
-    glUniform2f(iResolution, 1024, 768);
 }
 
 void Shader::unbind() const {
