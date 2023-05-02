@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <random>
+#include <cstdlib>
 
 
 
@@ -45,16 +46,20 @@ void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
     for (int i = 0; i < PARTICLE_NUM; i++) {
-        particles[i].updatePosition(2);
         particles[i].renderCircle();
+        // make a random number
+        float dx = (float) rand();
+        // scale it to be between 2 and 4
+        float scaled = (dx / RAND_MAX) * 2 + 2;
+        particles[i].updatePosition(scaled);
         particles[i].wallBounce();
 
-        // // check for collisions with other particles (NOT IMPLEMENTED ATM)
-        // for (int j = i + 1; j < PARTICLE_NUM; j++) {
-        //     if (particles[i].collidesWith(particles[j])) {
-        //         particles[i].resolveCollision(particles[j]);
-        //     }
-        // }
+        // check for collisions with other particles (NOT IMPLEMENTED ATM)
+        for (int j = i + 1; j < PARTICLE_NUM; j++) {
+            if (particles[i].collidesWith(particles[j])) {
+                particles[i].resolveCollision(particles[j]);
+            }
+        }
     }
     // glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     // p->updatePos(2);
@@ -95,20 +100,27 @@ int main(int argc, char** argv) {
     // const int cuda_device = findCudaDevice(argc, (const char**)argv);
     // cudaDeviceProp deviceProps;
     // checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
-
+    
+    srand(time(NULL));
     for (int i = 0; i < PARTICLE_NUM; i++) {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dist(0.002, 0.005);
-        float dx = dist(gen);
-        float dy = dist(gen);
 
-        std::uniform_real_distribution<float> rand(0.002, 0.95);
-        printf("dx: %f, dy: %f\n", dx, dy);
-    
+        std::uniform_real_distribution<float> dist(-0.0015, 0.0015);
+        std::uniform_real_distribution<float> rand(-0.95, 0.95);
+
+        // make random particle velocity        
+        float dx = dist(gen) * 6;
+        float dy = dist(gen) * 6;
+
         // make random particle position
+        float x = rand(gen);
+        float y = rand(gen);
 
-        particles[i] = Particle(Vector(rand(gen), rand(gen)), Vector(dx, dy), 1, 0.1);
+        // printf("dx: %f, dy: %f\n", dx, dy);
+        // printf ("x: %f, y: %f\n", x, y);
+
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, 0.1);
     }
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
