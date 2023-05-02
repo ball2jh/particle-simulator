@@ -111,6 +111,8 @@ bool Particle::collidesWith(const Particle& other) const {
 }
 
 void Particle::resolveCollision(Particle& other) {
+    
+    
     //TODO : https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
     Vector p1Pos = this->getPosition();
     Vector p2Pos = other.getPosition();
@@ -122,13 +124,25 @@ void Particle::resolveCollision(Particle& other) {
         distance = 1;
     }
 
+    printf("collision: %f, %f\n", collision.getX(), collision.getY());
+
+    // components of velocity along collision vector
     double aci = this->getVelocity().dot(collision);
     double bci = other.getVelocity().dot(collision);
+
+    // final velocities after collision
     double acf = bci;
     double bcf = aci;
 
     this->setVelocity(this->getVelocity() + collision * (acf - aci));
     other.setVelocity(other.getVelocity() + collision * (bcf - bci));
+
+    //move ball out of collision
+    float radiiSum = this->getRadius() + other.getRadius();
+    float overlap = radiiSum - distance;
+    this->setPosition(this->getPosition() + collision * overlap / 2);
+    other.setPosition(other.getPosition() - collision * overlap / 2);
+    
 }
 
 
