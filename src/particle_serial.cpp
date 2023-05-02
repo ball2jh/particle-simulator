@@ -74,11 +74,20 @@ void Particle::wallBounce() {
     float dx = this->velocity.getX();
     float dy = this->velocity.getY();
     float radius = this->getRadius();
-
-    if (x + radius > 1 || x - radius < -1) {
+    
+    if (x + radius > 1) {
+        this->position.setX(1 - radius);
+        this->velocity.setX(-dx);
+    } else if (x - radius < -1) {
+        this->position.setX(-1 + radius);
         this->velocity.setX(-dx);
     }
-    if (y + radius > 1 || y - radius < -1) {
+
+    if (y + radius > 1) {
+        this->position.setY(1 - radius);
+        this->velocity.setY(-dy);
+    } else if (y - radius < -1) {
+        this->position.setY(-1 + radius);
         this->velocity.setY(-dy);
     }
 
