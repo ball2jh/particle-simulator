@@ -32,7 +32,7 @@
 GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
 void *d_vbo_buffer = NULL;
-Particle particles[2];
+Particle particles[PARTICLE_NUM];
 
 // GL functionality
 bool initGL(int *argc, char **argv);
