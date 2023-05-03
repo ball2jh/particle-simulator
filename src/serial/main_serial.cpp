@@ -65,6 +65,20 @@ void display() {
     // p->renderCircle();
     // p->wallBounce();
     // Swap buffers
+
+    static int frameCount = 0;
+    static int lastTime = 0;
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    frameCount++;
+
+    if (currentTime - lastTime > 1000) {
+        char title[80];
+        sprintf(title, "Particle Simulator - Serial (%d fps)", frameCount);
+        glutSetWindowTitle(title);
+        frameCount = 0;
+        lastTime = currentTime;
+    }
+
     glutSwapBuffers();
 }
 

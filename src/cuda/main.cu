@@ -65,7 +65,6 @@ void display() {
         float scaled = (dx / RAND_MAX) * 2 + 2;
         particles[i].updatePosition(scaled);
         particles[i].wallBounce();
-        // check for collisions with other particles (NOT IMPLEMENTED ATM)
 
     }
 
@@ -78,6 +77,19 @@ void display() {
     checkCollision<<<blockCount, blockSize>>>(device_particles);
     // Retrieve particle data from device
     cudaMemcpy(particles, device_particles, PARTICLE_NUM * sizeof(Particle), cudaMemcpyDeviceToHost);
+
+    static int frameCount = 0;
+    static int lastTime = 0;
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    frameCount++;
+
+    if (currentTime - lastTime > 1000) {
+        char title[80];
+        sprintf(title, "Particle Simulator (%d fps)", frameCount);
+        glutSetWindowTitle(title);
+        frameCount = 0;
+        lastTime = currentTime;
+    }
 
     glutSwapBuffers();
 }
