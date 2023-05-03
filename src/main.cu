@@ -98,7 +98,5 @@ int main(int argc, char** argv) {
 
     Renderer renderer;
 
-    glutMainLoop();
-
     return 0;
 }
