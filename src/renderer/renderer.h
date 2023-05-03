@@ -14,6 +14,7 @@
 
 class Renderer {
 public:
+    void clear() const;
     void draw(const VertexArray& vertex_array, const IndexBuffer& index_buffer, const Shader& shader) const;
 };
 #endif // RENDERER_H

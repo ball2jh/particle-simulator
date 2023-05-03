@@ -7,3 +7,7 @@ void Renderer::draw(const VertexArray& vertex_array, const IndexBuffer& index_bu
 
     glDrawElements(GL_TRIANGLES, index_buffer.get_count(), GL_UNSIGNED_INT, nullptr);
 }
+
+void Renderer::clear() const {
+    glClear(GL_COLOR_BUFFER_BIT);
+}

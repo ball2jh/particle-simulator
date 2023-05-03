@@ -20,6 +20,8 @@
 #include "renderer/vertex_buffer_layout.h"
 #include "renderer/renderer.h"
 
+#include "vector.cuh"
+
 #define MAX_PARTICLES_PER_NODE 4
 // vbo variables
 Renderer renderer;
@@ -34,18 +36,16 @@ void *d_vbo_buffer = NULL;
 bool initGL(int *argc, char **argv);
 
 void display(void) {
-	glClear(GL_COLOR_BUFFER_BIT);
-
+	renderer.clear();
     renderer.draw(*vertex_array, *index_buffer, *shader);
 
-    // Swap buffers
     glutSwapBuffers();
 }
 
 bool initGL(int *argc, char **argv)
 {
     glutInit(argc, argv);
-    glutInitWindowSize(1024, 768);
+    glutInitWindowSize(800, 800);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
     glutDisplayFunc(display);
@@ -66,37 +66,35 @@ bool initGL(int *argc, char **argv)
 }
 
 int main(int argc, char** argv) {
-    const int cuda_device = findCudaDevice(argc, (const char**)argv);
-    cudaDeviceProp deviceProps;
-    checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
-
     initGL(&argc, argv);
 
-    shader = new Shader("res/shaders/basic.shader");
+    shader = new Shader("res/shaders/circle.shader");
     vertex_array = new VertexArray();
-    VertexBuffer vertex_buffer = VertexBuffer(8 * sizeof(float));
+    VertexBuffer vertex_buffer = VertexBuffer(12 * sizeof(float));
 
-    float vertices[] = {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-         0.5f,  0.5f,
-        -0.5f,  0.5f
+    float quad_vertices[] = {
+        -1.0f, -1.0f, 1000.0f,
+        1.0f, -1.0f, 1000.0f,
+        1.0f,  1.0f, 1000.0f,
+        -1.0f,  1.0f, 1000.0f,
     };
 
-    vertex_buffer.set_data(vertices, 8 * sizeof(float));
+    vertex_buffer.set_data(quad_vertices, 12 * sizeof(float));
 
     VertexBufferLayout layout;
+
     layout.push<float>(2);
+    layout.push<float>(1);
     vertex_array->add_buffer(vertex_buffer, layout);
 
-    uint32_t indeces[] = {
+    uint32_t indices[] = {
         0, 1, 2,
-        2, 3, 1
+        2, 3, 0,
     };
 
-    index_buffer = new IndexBuffer(indeces, 6);
+    index_buffer = new IndexBuffer(indices, 6);
 
-    Renderer renderer;
+    glutMainLoop();
 
     return 0;
 }
