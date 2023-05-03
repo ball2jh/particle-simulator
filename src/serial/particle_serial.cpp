@@ -124,7 +124,7 @@ void Particle::resolveCollision(Particle& other) {
         distance = 1;
     }
 
-    printf("collision: %f, %f\n", collision.getX(), collision.getY());
+    //printf("collision: %f, %f\n", collision.getX(), collision.getY());
 
     // components of velocity along collision vector
     double aci = this->getVelocity().dot(collision);

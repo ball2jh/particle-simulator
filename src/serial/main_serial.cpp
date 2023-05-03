@@ -28,12 +28,12 @@
 // vbo variables
 #include <math.h>
 #define PI 3.14159265f
-#define PARTICLE_NUM 5
+#define PARTICLE_NUM 10000
 
 GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
 void *d_vbo_buffer = NULL;
-Particle particles[2];
+Particle particles[PARTICLE_NUM];
 
 // GL functionality
 bool initGL(int *argc, char **argv);
@@ -76,7 +76,7 @@ void timer( int value )
 bool initGL(int *argc, char **argv)
 {
     glutInit(argc, argv);
-    glutInitWindowSize(800, 800);
+    glutInitWindowSize(1280, 960);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
     glutTimerFunc( 0, timer, 0 );
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
         // printf("dx: %f, dy: %f\n", dx, dy);
         // printf ("x: %f, y: %f\n", x, y);
 
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, 0.1);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, 0.001);
     }
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
