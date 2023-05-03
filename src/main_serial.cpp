@@ -18,8 +18,6 @@
 
 // #include <cuda_gl_interop.h>
 
-#include "renderer/shader.h"
-#include "renderer/buffer.h"
 #include "particle_serial.h"
 #include "particle_serial.cpp"
 
