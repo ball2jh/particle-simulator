@@ -27,6 +27,9 @@ public:
     __host__ __device__ void updatePosition(float dt);
     __host__ void renderCircle();
     __host__ __device__ void wallBounce();
+
+    __host__ __device__ bool collidesWith(const Particle& other) const;
+    __host__ __device__ void resolveCollision(Particle& other);
     //void updateVelocity(const Vector& force, float deltaTime);
 private:
     Vector position;

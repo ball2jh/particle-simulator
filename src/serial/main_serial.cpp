@@ -29,6 +29,7 @@
 #include <math.h>
 #define PI 3.14159265f
 #define PARTICLE_NUM 10000
+#define PARTICLE_SIZE 0.003f
 
 GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
@@ -118,7 +119,7 @@ int main(int argc, char** argv) {
         // printf("dx: %f, dy: %f\n", dx, dy);
         // printf ("x: %f, y: %f\n", x, y);
 
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, 0.001);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, PARTICLE_SIZE);
     }
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
