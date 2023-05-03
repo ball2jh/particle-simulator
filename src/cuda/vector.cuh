@@ -13,6 +13,7 @@ public:
     __host__ __device__ void setX(float x);
     __host__ __device__ float getY() const;
     __host__ __device__ void setY(float y);
+    __host__ __device__ float dot(const Vector& other) const;
 
     __host__ __device__ Vector operator+(const Vector& other) const;
     __host__ __device__ Vector operator+=(const Vector& other);

@@ -1,8 +1,6 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include <cuda_runtime.h>
-
 class Vector {
 public:
     // Default constructor

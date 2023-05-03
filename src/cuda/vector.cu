@@ -21,6 +21,10 @@ __host__ __device__ void Vector::setY(float y) {
     this->y = y;
 }
 
+__host__ __device__ float Vector::dot(const Vector& other) const {
+    return x * other.x + y * other.y;
+}
+
 __host__ __device__ Vector Vector::operator+(const Vector& other) const {
     return Vector(x + other.x, y + other.y);
 }
