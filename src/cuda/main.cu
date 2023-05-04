@@ -36,7 +36,6 @@ GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
 void *d_vbo_buffer = NULL;
 Particle* device_particles;
-Particle* particles;
 
 // GL functionality
 bool initGL(int *argc, char **argv);
@@ -45,10 +44,10 @@ void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
 
 
 // A cuda kernel
-__global__ void checkCollision(Particle* d_particles) {
+__global__ void checkCollision(Particle* d_particles, int n_particles) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    for (int j = i + 1; j < num_particles; j++) {
+    for (int j = i + 1; j < n_particles; j++) {
         if (d_particles[i].collidesWith(d_particles[j])) {
             d_particles[i].resolveCollision(d_particles[j]);
         }
@@ -75,7 +74,7 @@ void display() {
     // Send particle data to device
     cudaMemcpy(device_particles, particles, num_particles * sizeof(Particle), cudaMemcpyHostToDevice);
     // Do the cuda stuff
-    checkCollision<<<blockCount, blockSize>>>(device_particles);
+    checkCollision<<<blockCount, blockSize>>>(device_particles, num_particles);
     // Retrieve particle data from device
     cudaMemcpy(particles, device_particles, num_particles * sizeof(Particle), cudaMemcpyDeviceToHost);
 
