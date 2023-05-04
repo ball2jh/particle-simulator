@@ -1,4 +1,0 @@
-g++ main_serial.cpp -lGLEW -lGL -lGLU -lglut -o app_serial
-
-
-i forgot how to make Makefile
