@@ -75,6 +75,7 @@ void display() {
     if (currentTime - lastTime > 1000) {
         char title[80];
         sprintf(title, "Particle Simulator - Serial (%d fps)", frameCount);
+        printf("%d\n", frameCount);
         glutSetWindowTitle(title);
         frameCount = 0;
         lastTime = currentTime;
@@ -125,11 +126,9 @@ int main(int argc, char** argv) {
         switch (opt) {
             case 'n':
                 num_particles = strtol(optarg, NULL, 10);
-                printf("num_particles: %d\n", num_particles);
                 break;
             case 's':
                 particle_size = strtod(optarg, NULL);
-                printf("particle_size: %f\n", particle_size);
                 break;
             default:
                 fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size]\n", argv[0]);
