@@ -159,7 +159,10 @@ int main(int argc, char** argv) {
         // printf ("x: %f, y: %f\n", x, y);
 
         particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, particle_size);
-    }
+    } 
+    
+    particles[num_particles - 1].setMass(5);
+    particles[num_particles - 1].setRadius(0.2f);
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
 
