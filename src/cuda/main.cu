@@ -12,19 +12,17 @@
 #include <stack>
 #include <unistd.h>
 
-// #include "helpers/helper_cuda.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-// #include <cuda_gl_interop.h>
-
 #include "particle.cuh"
 #include "particle.cu"
+#include "vector.cuh"
+#include "vector.cu"
+
 #include <curand.h>
 #include <curand_kernel.h>
 
-#include "vector.cuh"
-#include "vector.cu"
 
 #include <math.h>
 #define PI 3.14159265f
@@ -137,10 +135,6 @@ bool initGL(int *argc, char **argv)
 }
 
 int main(int argc, char** argv) {
-    // const int cuda_device = findCudaDevice(argc, (const char**)argv);
-    // cudaDeviceProp deviceProps;
-    // checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
-
         // Set defaults
     num_particles = 5;
     particle_size = 0.1f;
@@ -190,24 +184,6 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&states, num_particles * sizeof(curandState));
 
     initGL(&argc, argv);
-    //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
-
-    // VertexBuffer buffer = VertexBuffer(8 * sizeof(float));
-
-    // float vertices[] = {
-    //     -0.5f, -0.5f,
-    //      0.5f, -0.5f,
-    //      0.5f,  0.5f,
-    //     -0.5f,  0.5f
-    // };
-    // buffer.set_data(vertices, 8 * sizeof(float));
-
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-
-    // Shader shader = Shader("res/shaders/basic.shader");
-    // shader.bind();
     glutMainLoop();
 
     cudaDeviceSynchronize();
