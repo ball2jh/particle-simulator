@@ -184,6 +184,9 @@ int main(int argc, char** argv) {
         // ---------------------------
     }
 
+    particles[num_particles - 1].setMass(5);
+    particles[num_particles - 1].setRadius(0.2f);
+
     // Init the device particles
     cudaMalloc((void**)&device_particles, num_particles * sizeof(Particle));
     cudaMalloc((void**)&states, num_particles * sizeof(curandState));
