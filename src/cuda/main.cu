@@ -72,12 +72,12 @@ void display() {
 
     for (int i = 0; i < num_particles; i++) {
         particles[i].renderCircle(); // opengl stuff cant be cuda
-        // make a random number
-        float dx = (float) rand();
-        //// scale it to be between 2 and 4
-        float scaled = (dx / RAND_MAX) * 2 + 2;
-        particles[i].updatePosition(scaled);
-        particles[i].wallBounce();
+        // // make a random number
+        // float dx = (float) rand();
+        // //// scale it to be between 2 and 4
+        // float scaled = (dx / RAND_MAX) * 2 + 2;
+        // particles[i].updatePosition(scaled);
+        // particles[i].wallBounce();
 
     }
 
