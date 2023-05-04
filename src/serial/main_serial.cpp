@@ -9,7 +9,7 @@
 #include <sstream>
 #include <random>
 #include <cstdlib>
-
+#include <unistd.h>
 
 
 // #include "helpers/helper_cuda.h"
@@ -28,13 +28,14 @@
 // vbo variables
 #include <math.h>
 #define PI 3.14159265f
-#define PARTICLE_NUM 10000
-#define PARTICLE_SIZE 0.003f
+
+int num_particles;
+float particle_size;
+Particle* particles;
 
 GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
 void *d_vbo_buffer = NULL;
-Particle particles[PARTICLE_NUM];
 
 // GL functionality
 bool initGL(int *argc, char **argv);
@@ -44,7 +45,7 @@ void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int i = 0; i < PARTICLE_NUM; i++) {
+    for (int i = 0; i < num_particles; i++) {
         particles[i].renderCircle();
         // make a random number
         float dx = (float) rand();
@@ -54,7 +55,7 @@ void display() {
         particles[i].wallBounce();
 
         // check for collisions with other particles (NOT IMPLEMENTED ATM)
-        for (int j = i + 1; j < PARTICLE_NUM; j++) {
+        for (int j = i + 1; j < num_particles; j++) {
             if (particles[i].collidesWith(particles[j])) {
                 particles[i].resolveCollision(particles[j]);
             }
@@ -91,7 +92,7 @@ void timer( int value )
 bool initGL(int *argc, char **argv)
 {
     glutInit(argc, argv);
-    glutInitWindowSize(1280, 960);
+    glutInitWindowSize(800, 800);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
     glutTimerFunc( 0, timer, 0 );
@@ -113,9 +114,33 @@ int main(int argc, char** argv) {
     // const int cuda_device = findCudaDevice(argc, (const char**)argv);
     // cudaDeviceProp deviceProps;
     // checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
-    
+
+    // Set defaults
+    num_particles = 5;
+    particle_size = 0.1f;
+    int opt;
+
+    // Command line options
+    while ((opt = getopt(argc, argv, "n:s:")) != -1) {
+        switch (opt) {
+            case 'n':
+                num_particles = strtol(optarg, NULL, 10);
+                printf("num_particles: %d\n", num_particles);
+                break;
+            case 's':
+                particle_size = strtod(optarg, NULL);
+                printf("particle_size: %f\n", particle_size);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    particles = (Particle*) calloc(num_particles, sizeof(Particle));
+
     srand(time(NULL));
-    for (int i = 0; i < PARTICLE_NUM; i++) {
+    for (int i = 0; i < num_particles; i++) {
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -133,7 +158,7 @@ int main(int argc, char** argv) {
         // printf("dx: %f, dy: %f\n", dx, dy);
         // printf ("x: %f, y: %f\n", x, y);
 
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, PARTICLE_SIZE);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, particle_size);
     }
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);

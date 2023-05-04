@@ -10,6 +10,7 @@
 #include <random>
 #include <cstdlib>
 #include <stack>
+#include <unistd.h>
 
 // #include "helpers/helper_cuda.h"
 #include <GL/glew.h>
@@ -27,9 +28,9 @@
 #include <math.h>
 #define PI 3.14159265f
 
-
-#define PARTICLE_NUM 10000
-#define PARTICLE_SIZE 0.003f
+int num_particles;
+float particle_size;
+Particle* particles;
 
 GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
@@ -47,7 +48,7 @@ void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
 __global__ void checkCollision(Particle* d_particles) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    for (int j = i + 1; j < PARTICLE_NUM; j++) {
+    for (int j = i + 1; j < num_particles; j++) {
         if (d_particles[i].collidesWith(d_particles[j])) {
             d_particles[i].resolveCollision(d_particles[j]);
         }
@@ -57,7 +58,7 @@ __global__ void checkCollision(Particle* d_particles) {
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int i = 0; i < PARTICLE_NUM; i++) {
+    for (int i = 0; i < num_particles; i++) {
         particles[i].renderCircle();
         // make a random number
         float dx = (float) rand();
@@ -69,14 +70,14 @@ void display() {
     }
 
     int blockSize = 256;
-    int blockCount = (PARTICLE_NUM + blockSize - 1) / blockSize;
+    int blockCount = (num_particles + blockSize - 1) / blockSize;
 
     // Send particle data to device
-    cudaMemcpy(device_particles, particles, PARTICLE_NUM * sizeof(Particle), cudaMemcpyHostToDevice);
+    cudaMemcpy(device_particles, particles, num_particles * sizeof(Particle), cudaMemcpyHostToDevice);
     // Do the cuda stuff
     checkCollision<<<blockCount, blockSize>>>(device_particles);
     // Retrieve particle data from device
-    cudaMemcpy(particles, device_particles, PARTICLE_NUM * sizeof(Particle), cudaMemcpyDeviceToHost);
+    cudaMemcpy(particles, device_particles, num_particles * sizeof(Particle), cudaMemcpyDeviceToHost);
 
     static int frameCount = 0;
     static int lastTime = 0;
@@ -125,10 +126,34 @@ int main(int argc, char** argv) {
     // const int cuda_device = findCudaDevice(argc, (const char**)argv);
     // cudaDeviceProp deviceProps;
     // checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
-    srand(time(NULL));
-    particles = (Particle*)malloc(PARTICLE_NUM * sizeof(Particle));
 
-    for (int i = 0; i < PARTICLE_NUM; i++) {
+        // Set defaults
+    num_particles = 5;
+    particle_size = 0.1f;
+    int opt;
+
+    // Command line options
+    while ((opt = getopt(argc, argv, "n:s:")) != -1) {
+        switch (opt) {
+            case 'n':
+                num_particles = strtol(optarg, NULL, 10);
+                printf("num_particles: %d\n", num_particles);
+                break;
+            case 's':
+                particle_size = strtod(optarg, NULL);
+                printf("particle_size: %f\n", particle_size);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    particles = (Particle*) calloc(num_particles, sizeof(Particle));
+
+    srand(time(NULL));
+
+    for (int i = 0; i < num_particles; i++) {
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -143,12 +168,12 @@ int main(int argc, char** argv) {
         // make random particle position
         float x = rand(gen);
         float y = rand(gen);
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, PARTICLE_SIZE);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, particle_size);
         // ---------------------------
     }
 
     // Init the device particles
-    cudaMalloc((void**)&device_particles, PARTICLE_NUM * sizeof(Particle));
+    cudaMalloc((void**)&device_particles, num_particles * sizeof(Particle));
 
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
