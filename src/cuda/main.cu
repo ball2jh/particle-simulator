@@ -86,7 +86,7 @@ void display() {
 
     // Send particle data to device
     cudaMemcpy(device_particles, particles, num_particles * sizeof(Particle), cudaMemcpyHostToDevice);
-    // updateParticles<<<blockCount, 256>>>(device_particles, num_particles, states);
+    updateParticles<<<blockCount, 256>>>(device_particles, num_particles, states);
     // Do the cuda stuff
     checkCollision<<<blockCount, 256>>>(device_particles, num_particles);
     // Retrieve particle data from device
@@ -150,11 +150,9 @@ int main(int argc, char** argv) {
         switch (opt) {
             case 'n':
                 num_particles = strtol(optarg, NULL, 10);
-                printf("num_particles: %d\n", num_particles);
                 break;
             case 's':
                 particle_size = strtod(optarg, NULL);
-                printf("particle_size: %f\n", particle_size);
                 break;
             default:
                 fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size]\n", argv[0]);
@@ -214,5 +212,5 @@ int main(int argc, char** argv) {
     cudaFree(device_particles);
     cudaFree(states);
 
-    // return 0;
+    return 0;
 }
