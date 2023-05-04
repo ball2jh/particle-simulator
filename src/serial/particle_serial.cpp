@@ -134,9 +134,9 @@ void Particle::resolveCollision(Particle& other) {
     double acf = bci;
     double bcf = aci;
 
-    this->setVelocity((this->getVelocity() + collision * (acf - aci)) * 1 / this->getMass());
-    other.setVelocity((other.getVelocity() + collision * (bcf - bci)) * 1 / other.getMass());
-
+    this->setVelocity((this->getVelocity() + collision * (acf - aci) * 1 / this->getMass()));
+    other.setVelocity((other.getVelocity() + collision * (bcf - bci) * 1 / other.getMass()));
+    
     //move ball out of collision
     float radiiSum = this->getRadius() + other.getRadius();
     float overlap = radiiSum - distance;

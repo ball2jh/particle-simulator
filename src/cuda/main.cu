@@ -171,6 +171,7 @@ int main(int argc, char** argv) {
 
         std::uniform_real_distribution<float> dist(-0.0015, 0.0015);
         std::uniform_real_distribution<float> rand(-0.95, 0.95);
+        std::uniform_real_distribution<float> mass(1.5, 5.5);
 
 
         // Make Particle -------------
@@ -180,12 +181,9 @@ int main(int argc, char** argv) {
         // make random particle position
         float x = rand(gen);
         float y = rand(gen);
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 10000, particle_size);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), mass(gen), particle_size);
         // ---------------------------
     }
-
-    particles[num_particles - 1].setMass(5);
-    particles[num_particles - 1].setRadius(0.2f);
 
     // Init the device particles
     cudaMalloc((void**)&device_particles, num_particles * sizeof(Particle));

@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
     // checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
 
     // Set defaults
-    num_particles = 5;
+    num_particles = 10;
     particle_size = 0.1f;
     int opt;
 
@@ -146,6 +146,8 @@ int main(int argc, char** argv) {
         std::uniform_real_distribution<float> dist(-0.0015, 0.0015);
         std::uniform_real_distribution<float> rand(-0.95, 0.95);
 
+        std::uniform_real_distribution<float> mass(1.5, 5.5);
+
         // make random particle velocity        
         float dx = dist(gen) * 6;
         float dy = dist(gen) * 6;
@@ -157,11 +159,10 @@ int main(int argc, char** argv) {
         // printf("dx: %f, dy: %f\n", dx, dy);
         // printf ("x: %f, y: %f\n", x, y);
 
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, particle_size);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), mass(gen), particle_size);
     } 
     
-    particles[num_particles - 1].setMass(5);
-    particles[num_particles - 1].setRadius(0.2f);
+
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
 
