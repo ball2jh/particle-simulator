@@ -20,17 +20,19 @@
 
 #include "particle.cuh"
 #include "particle.cu"
+#include <curand.h>
+#include <curand_kernel.h>
 
 #include "vector.cuh"
 #include "vector.cu"
 
-#define MAX_PARTICLES_PER_NODE 4
 #include <math.h>
 #define PI 3.14159265f
 
 int num_particles;
 float particle_size;
 Particle* particles;
+curandState* states;
 
 GLuint vertex_buffer;
 struct cudaGraphicsResource *cuda_vbo_resource;
@@ -54,14 +56,25 @@ __global__ void checkCollision(Particle* d_particles, int n_particles) {
     }
 }
 
+__global__ void updateParticles(Particle* d_particles, int n_particles, curandState* states) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n_particles) {
+        curand_init(i, 0, 0, &states[i]);
+        float dx = (float) curand_uniform(&states[i]);
+        float scaled = (dx / RAND_MAX) * 2 + 2;
+        d_particles[i].updatePosition(scaled);
+        d_particles[i].wallBounce();
+    }
+}
+
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
     for (int i = 0; i < num_particles; i++) {
-        particles[i].renderCircle();
+        particles[i].renderCircle(); // opengl stuff cant be cuda
         // make a random number
         float dx = (float) rand();
-        // scale it to be between 2 and 4
+        //// scale it to be between 2 and 4
         float scaled = (dx / RAND_MAX) * 2 + 2;
         particles[i].updatePosition(scaled);
         particles[i].wallBounce();
@@ -69,12 +82,13 @@ void display() {
     }
 
     int blockSize = 256;
-    int blockCount = (num_particles + blockSize - 1) / blockSize;
+    int blockCount = (num_particles + blockSize - 1) / blockSize;;
 
     // Send particle data to device
     cudaMemcpy(device_particles, particles, num_particles * sizeof(Particle), cudaMemcpyHostToDevice);
+    // updateParticles<<<blockCount, 256>>>(device_particles, num_particles, states);
     // Do the cuda stuff
-    checkCollision<<<blockCount, blockSize>>>(device_particles, num_particles);
+    checkCollision<<<blockCount, 256>>>(device_particles, num_particles);
     // Retrieve particle data from device
     cudaMemcpy(particles, device_particles, num_particles * sizeof(Particle), cudaMemcpyDeviceToHost);
 
@@ -167,12 +181,13 @@ int main(int argc, char** argv) {
         // make random particle position
         float x = rand(gen);
         float y = rand(gen);
-        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 1, particle_size);
+        particles[i] = Particle(Vector(x, y), Vector(dx, dy), 10000, particle_size);
         // ---------------------------
     }
 
     // Init the device particles
     cudaMalloc((void**)&device_particles, num_particles * sizeof(Particle));
+    cudaMalloc((void**)&states, num_particles * sizeof(curandState));
 
     initGL(&argc, argv);
     //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
@@ -197,6 +212,7 @@ int main(int argc, char** argv) {
 
     cudaDeviceSynchronize();
     cudaFree(device_particles);
+    cudaFree(states);
 
     // return 0;
 }
