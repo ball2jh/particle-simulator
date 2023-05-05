@@ -1,6 +1,3 @@
-// #include <device_launch_parameters.h>
-// #include <cuda_runtime.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -16,7 +13,6 @@
 
 #include "particle_serial.h"
 #include "particle_serial.cpp"
-
 #include "vector_serial.h"
 #include "vector_serial.cpp"
 
@@ -30,19 +26,21 @@ Particle* particles;
 // GL functionality
 bool initGL(int *argc, char **argv);
 
+// OpenGL rendering
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
     for (int i = 0; i < num_particles; i++) {
+        // Render the particle
         particles[i].renderCircle();
-        // make a random number
         float dx = (float) rand();
-        // scale it to be between 2 and 4
         float scaled = (dx / RAND_MAX) * 2 + 2;
+
+        // Update the particle's position, check for wall collision
         particles[i].updatePosition(scaled);
         particles[i].wallBounce();
 
-        // check for collisions with other particles (NOT IMPLEMENTED ATM)
+        // Check for collisions with other particles
         for (int j = i + 1; j < num_particles; j++) {
             if (particles[i].collidesWith(particles[j])) {
                 particles[i].resolveCollision(particles[j]);
@@ -50,6 +48,7 @@ void display() {
         }
     }
 
+    // FPS counter
     static int frameCount = 0;
     static int lastTime = 0;
     int currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -83,7 +82,6 @@ bool initGL(int *argc, char **argv)
     glutTimerFunc( 0, timer, 0 );
     glutDisplayFunc(display);
 
-
     // Initialize GLEW
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
@@ -98,6 +96,7 @@ bool initGL(int *argc, char **argv)
 int main(int argc, char** argv) {
 
     // Set defaults
+    srand(time(NULL));
     num_particles = 10;
     particle_size = 0.1f;
     int opt;
@@ -119,7 +118,6 @@ int main(int argc, char** argv) {
 
     particles = (Particle*) calloc(num_particles, sizeof(Particle));
 
-    srand(time(NULL));
     for (int i = 0; i < num_particles; i++) {
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -142,7 +140,6 @@ int main(int argc, char** argv) {
     
 
     initGL(&argc, argv);
-
     glutMainLoop();
 
     return 0;

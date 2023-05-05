@@ -47,7 +47,7 @@ void Particle::updatePosition(float deltaTime) {
 }
 
 void Particle::renderCircle() {
-    GLfloat ballRadius = (GLfloat) this->radius;   // Radius of the bouncing ball
+    GLfloat ballRadius = (GLfloat) this->radius;
     GLfloat ballX = (GLfloat) this->position.getX();
     GLfloat ballY = (GLfloat) this->position.getY();
 
@@ -90,8 +90,6 @@ void Particle::wallBounce() {
         this->position.setY(-1 + radius);
         this->velocity.setY(-dy);
     }
-
-
 }
 
 bool Particle::collidesWith(const Particle& other) const {
@@ -113,7 +111,8 @@ bool Particle::collidesWith(const Particle& other) const {
 void Particle::resolveCollision(Particle& other) {
     
     
-    //TODO : https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+    // With help from https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+
     Vector p1Pos = this->getPosition();
     Vector p2Pos = other.getPosition();
 
@@ -130,14 +129,13 @@ void Particle::resolveCollision(Particle& other) {
     double aci = this->getVelocity().dot(collision);
     double bci = other.getVelocity().dot(collision);
 
-    // final velocities after collision
+    // Set final velocities
     double acf = bci;
     double bcf = aci;
-
     this->setVelocity((this->getVelocity() + collision * (acf - aci) * 1 / this->getMass()));
     other.setVelocity((other.getVelocity() + collision * (bcf - bci) * 1 / other.getMass()));
     
-    //move ball out of collision
+    // Prevent particles from overlapping
     float radiiSum = this->getRadius() + other.getRadius();
     float overlap = radiiSum - distance;
     this->setPosition(this->getPosition() + collision * overlap / 2);

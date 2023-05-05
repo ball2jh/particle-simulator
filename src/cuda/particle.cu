@@ -10,39 +10,39 @@
 Particle::Particle() : position(Vector(0, 0)), velocity(Vector(0, 0)), mass(1), radius(1) {}
 Particle::Particle(const Vector& position, const Vector& velocity, float mass, float radius ) : position(position), velocity(velocity), mass(mass), radius(radius) {}
 
-__host__ __device__ const Vector& Particle::getPosition() const {
+__device__ const Vector& Particle::getPosition() const {
     return position;
 }
 
-__host__ __device__ void Particle::setPosition(const Vector& position) {
+__device__ void Particle::setPosition(const Vector& position) {
     this->position = position;
     }
 
-__host__ __device__ const Vector& Particle::getVelocity() const {
+__device__ const Vector& Particle::getVelocity() const {
     return velocity;
 }
 
-__host__ __device__ void Particle::setVelocity(const Vector& new_velocity) {
+__device__ void Particle::setVelocity(const Vector& new_velocity) {
     this->velocity = new_velocity;
 }
 
-__host__ __device__ float Particle::getMass() const {
+__device__ float Particle::getMass() const {
     return mass;
 }
 
-__host__ __device__ void Particle::setMass(float mass) {
+__device__ void Particle::setMass(float mass) {
     this->mass = mass;
 }
 
-__host__ __device__ float Particle::getRadius() const {
+__device__ float Particle::getRadius() const {
     return radius;
 }
 
-__host__ __device__ void Particle::setRadius(float radius) {
+__device__ void Particle::setRadius(float radius) {
     this->radius = radius;
 }
 
-__host__ __device__ void Particle::updatePosition(float deltaTime) {
+void Particle::updatePosition(float deltaTime) {
     this->position += this->velocity * deltaTime;
 }
 
@@ -68,7 +68,7 @@ __host__ void Particle::renderCircle() {
     glEnd();
 }
 
-__host__ __device__ void Particle::wallBounce() {
+__device__ void Particle::wallBounce() {
     float x = this->position.getX();
     float y = this->position.getY();
     float dx = this->velocity.getX();
@@ -92,8 +92,7 @@ __host__ __device__ void Particle::wallBounce() {
     }
 }
 
-__host__ __device__ bool Particle::collidesWith(const Particle& other) const {
-
+__device__ bool Particle::collidesWith(const Particle& other) const {
     Vector p1Pos = this->getPosition();
     Vector p2Pos = other.getPosition();
     float p1Radius = this->getRadius();
@@ -108,9 +107,7 @@ __host__ __device__ bool Particle::collidesWith(const Particle& other) const {
     return collision;
 }
 
-void Particle::resolveCollision(Particle& other) {
-    
-    
+__device__ void Particle::resolveCollision(Particle& other) {
     //TODO : https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
     Vector p1Pos = this->getPosition();
     Vector p2Pos = other.getPosition();
@@ -121,8 +118,6 @@ void Particle::resolveCollision(Particle& other) {
         collision = Vector(1, 0);
         distance = 1;
     }
-
-    //printf("collision: %f, %f\n", collision.getX(), collision.getY());
 
     // components of velocity along collision vector
     double aci = this->getVelocity().dot(collision);

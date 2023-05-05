@@ -1,6 +1,3 @@
-// #include <device_launch_parameters.h>
-// #include <cuda_runtime.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -23,27 +20,16 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
-
-#include <math.h>
-#define PI 3.14159265f
-
 int num_particles;
 float particle_size;
 Particle* particles;
-curandState* states;
-
-GLuint vertex_buffer;
-struct cudaGraphicsResource *cuda_vbo_resource;
-void *d_vbo_buffer = NULL;
 Particle* device_particles;
+curandState* states;
 
 // GL functionality
 bool initGL(int *argc, char **argv);
-void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
-               unsigned int vbo_res_flags);
 
-
-// A cuda kernel
+// Check for collisions and resolve them
 __global__ void checkCollision(Particle* d_particles, int n_particles) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -54,6 +40,7 @@ __global__ void checkCollision(Particle* d_particles, int n_particles) {
     }
 }
 
+// Update the position of the particles and check for wall collisions
 __global__ void updateParticles(Particle* d_particles, int n_particles, curandState* states) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < n_particles) {
@@ -65,18 +52,14 @@ __global__ void updateParticles(Particle* d_particles, int n_particles, curandSt
     }
 }
 
+// Host function
 void display() {
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
+    // Render particles
     for (int i = 0; i < num_particles; i++) {
-        particles[i].renderCircle(); // opengl stuff cant be cuda
-        // // make a random number
-        // float dx = (float) rand();
-        // //// scale it to be between 2 and 4
-        // float scaled = (dx / RAND_MAX) * 2 + 2;
-        // particles[i].updatePosition(scaled);
-        // particles[i].wallBounce();
-
+        particles[i].renderCircle();
     }
 
     int blockSize = 256;
@@ -89,6 +72,9 @@ void display() {
     // Retrieve particle data from device
     cudaMemcpy(particles, device_particles, num_particles * sizeof(Particle), cudaMemcpyDeviceToHost);
 
+    cudaDeviceSynchronize();
+
+    // FPS counter
     static int frameCount = 0;
     static int lastTime = 0;
     int currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -118,10 +104,9 @@ bool initGL(int *argc, char **argv)
     glutInitWindowSize(800, 800);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
-        glutPositionWindow(950,100);
+    glutPositionWindow(950,100);
     glutTimerFunc( 0, timer, 0 );
     glutDisplayFunc(display);
-
 
     // Initialize GLEW
     glewExperimental = GL_TRUE;
@@ -135,7 +120,8 @@ bool initGL(int *argc, char **argv)
 }
 
 int main(int argc, char** argv) {
-        // Set defaults
+    // Set defaults
+    srand(time(NULL));
     num_particles = 5;
     particle_size = 0.1f;
     int opt;
@@ -157,18 +143,16 @@ int main(int argc, char** argv) {
 
     particles = (Particle*) calloc(num_particles, sizeof(Particle));
 
-    srand(time(NULL));
-
     for (int i = 0; i < num_particles; i++) {
         std::random_device rd;
         std::mt19937 gen(rd());
 
+        // Randomize velocity, position, and mass
         std::uniform_real_distribution<float> dist(-0.0015, 0.0015);
         std::uniform_real_distribution<float> rand(-0.95, 0.95);
         std::uniform_real_distribution<float> mass(1.5, 5.5);
 
-
-        // Make Particle -------------
+        // Make Particle
         // make random particle velocity        
         float dx = dist(gen) * 6;
         float dy = dist(gen) * 6;
@@ -176,7 +160,6 @@ int main(int argc, char** argv) {
         float x = rand(gen);
         float y = rand(gen);
         particles[i] = Particle(Vector(x, y), Vector(dx, dy), mass(gen), particle_size);
-        // ---------------------------
     }
 
     // Init the device particles
@@ -186,6 +169,7 @@ int main(int argc, char** argv) {
     initGL(&argc, argv);
     glutMainLoop();
 
+    // Clean up
     cudaDeviceSynchronize();
     cudaFree(device_particles);
     cudaFree(states);

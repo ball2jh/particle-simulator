@@ -11,25 +11,25 @@ public:
     Particle(const Vector& position, const Vector& velocity, float mass, float radius);
 
     // Getters and Setters
-    __host__ __device__ const Vector& getPosition() const;
-    __host__ __device__ void setPosition(const Vector& position);
+    __device__ const Vector& getPosition() const;
+    __device__ void setPosition(const Vector& position);
 
-    __host__ __device__ const Vector& getVelocity() const;
-    __host__ __device__ void setVelocity(const Vector& velocity);
+    __device__ const Vector& getVelocity() const;
+    __device__ void setVelocity(const Vector& velocity);
 
-    __host__ __device__ float getMass() const;
-    __host__ __device__ void setMass(float mass);
+    __device__ float getMass() const;
+    __device__ void setMass(float mass);
 
-    __host__ __device__ float getRadius() const;
-    __host__ __device__ void setRadius(float radius);
+    __device__ float getRadius() const;
+    __device__ void setRadius(float radius);
 
     // Other methods
-    __host__ __device__ void updatePosition(float dt);
+    void updatePosition(float dt);
     __host__ void renderCircle();
-    __host__ __device__ void wallBounce();
+    __device__ void wallBounce();
 
-    __host__ __device__ bool collidesWith(const Particle& other) const;
-    __host__ __device__ void resolveCollision(Particle& other);
+    __device__ bool collidesWith(const Particle& other) const;
+    __device__ void resolveCollision(Particle& other);
     //void updateVelocity(const Vector& force, float deltaTime);
 private:
     Vector position;
