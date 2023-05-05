@@ -11,12 +11,8 @@
 #include <cstdlib>
 #include <unistd.h>
 
-
-// #include "helpers/helper_cuda.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-
-// #include <cuda_gl_interop.h>
 
 #include "particle_serial.h"
 #include "particle_serial.cpp"
@@ -24,8 +20,6 @@
 #include "vector_serial.h"
 #include "vector_serial.cpp"
 
-#define MAX_PARTICLES_PER_NODE 4
-// vbo variables
 #include <math.h>
 #define PI 3.14159265f
 
@@ -33,14 +27,8 @@ int num_particles;
 float particle_size;
 Particle* particles;
 
-GLuint vertex_buffer;
-struct cudaGraphicsResource *cuda_vbo_resource;
-void *d_vbo_buffer = NULL;
-
 // GL functionality
 bool initGL(int *argc, char **argv);
-void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res,
-               unsigned int vbo_res_flags);
 
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -61,11 +49,6 @@ void display() {
             }
         }
     }
-    // glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    // p->updatePos(2);
-    // p->renderCircle();
-    // p->wallBounce();
-    // Swap buffers
 
     static int frameCount = 0;
     static int lastTime = 0;
@@ -74,7 +57,7 @@ void display() {
 
     if (currentTime - lastTime > 1000) {
         char title[80];
-        sprintf(title, "Particle Simulator - Serial (%d fps)", frameCount);
+        sprintf(title, "Particle Simulator Serial (%d fps) - %d particles", frameCount, num_particles);
         printf("%d\n", frameCount);
         glutSetWindowTitle(title);
         frameCount = 0;
@@ -96,6 +79,7 @@ bool initGL(int *argc, char **argv)
     glutInitWindowSize(800, 800);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
+    glutPositionWindow(100,100);
     glutTimerFunc( 0, timer, 0 );
     glutDisplayFunc(display);
 
@@ -112,9 +96,6 @@ bool initGL(int *argc, char **argv)
 }
 
 int main(int argc, char** argv) {
-    // const int cuda_device = findCudaDevice(argc, (const char**)argv);
-    // cudaDeviceProp deviceProps;
-    // checkCudaErrors(cudaGetDeviceProperties(&deviceProps, cuda_device));
 
     // Set defaults
     num_particles = 10;
@@ -156,36 +137,13 @@ int main(int argc, char** argv) {
         float x = rand(gen);
         float y = rand(gen);
 
-        // printf("dx: %f, dy: %f\n", dx, dy);
-        // printf ("x: %f, y: %f\n", x, y);
-
         particles[i] = Particle(Vector(x, y), Vector(dx, dy), mass(gen), particle_size);
     } 
     
 
     initGL(&argc, argv);
-    //createVBO(&vertex_buffer, &cuda_vbo_resource, 0);
-
-    // VertexBuffer buffer = VertexBuffer(8 * sizeof(float));
-
-    // float vertices[] = {
-    //     -0.5f, -0.5f,
-    //      0.5f, -0.5f,
-    //      0.5f,  0.5f,
-    //     -0.5f,  0.5f
-    // };
-    // buffer.set_data(vertices, 8 * sizeof(float));
-
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-
-    // Shader shader = Shader("res/shaders/basic.shader");
-    // shader.bind();
 
     glutMainLoop();
 
-    // //glDeleteProgram(shader)
-
-    // return 0;
+    return 0;
 }

@@ -85,7 +85,6 @@ void display() {
     // Send particle data to device
     cudaMemcpy(device_particles, particles, num_particles * sizeof(Particle), cudaMemcpyHostToDevice);
     updateParticles<<<blockCount, blockSize>>>(device_particles, num_particles, states);
-    // Do the cuda stuff
     checkCollision<<<blockCount, blockSize>>>(device_particles, num_particles);
     // Retrieve particle data from device
     cudaMemcpy(particles, device_particles, num_particles * sizeof(Particle), cudaMemcpyDeviceToHost);
@@ -97,7 +96,7 @@ void display() {
 
     if (currentTime - lastTime > 1000) {
         char title[80];
-        sprintf(title, "Particle Simulator (%d fps)", frameCount);
+        sprintf(title, "Particle Simulator (%d fps) - %d particles", frameCount, num_particles);
         printf("%d\n", frameCount);
         frameCount = 0;
         glutSetWindowTitle(title);
@@ -119,6 +118,7 @@ bool initGL(int *argc, char **argv)
     glutInitWindowSize(800, 800);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutCreateWindow("Particle Simulator");
+        glutPositionWindow(950,100);
     glutTimerFunc( 0, timer, 0 );
     glutDisplayFunc(display);
 
