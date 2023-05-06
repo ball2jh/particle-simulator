@@ -11,7 +11,7 @@ public:
     Particle(const Vector& position, const Vector& velocity, float mass, float radius);
 
     // Getters and Setters
-    __device__ const Vector& getPosition() const;
+    __host__ __device__ const Vector& getPosition() const;
     __device__ void setPosition(const Vector& position);
 
     __device__ const Vector& getVelocity() const;
@@ -24,7 +24,7 @@ public:
     __device__ void setRadius(float radius);
 
     // Other methods
-    void updatePosition(float dt);
+    __device__ void updatePosition(float dt);
     __host__ void renderCircle();
     __device__ void wallBounce();
 

@@ -26,6 +26,8 @@ Particle* particles;
 Particle* device_particles;
 curandState* states;
 
+int lastTime;
+
 // GL functionality
 bool initGL(int *argc, char **argv);
 
@@ -41,13 +43,10 @@ __global__ void checkCollision(Particle* d_particles, int n_particles) {
 }
 
 // Update the position of the particles and check for wall collisions
-__global__ void updateParticles(Particle* d_particles, int n_particles, curandState* states) {
+__global__ void updateParticles(Particle* d_particles, int n_particles, curandState* states, float deltaTime) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < n_particles) {
-        curand_init(i, 0, 0, &states[i]);
-        float dx = (float) curand_uniform(&states[i]);
-        float scaled = (dx / RAND_MAX) * 2 + 2;
-        d_particles[i].updatePosition(scaled);
+        d_particles[i].updatePosition(deltaTime);
         d_particles[i].wallBounce();
     }
 }
@@ -63,31 +62,30 @@ void display() {
     }
 
     int blockSize = 256;
-    int blockCount = (num_particles + blockSize - 1) / blockSize;;
+    int blockCount = (num_particles + blockSize - 1) / blockSize;
+
+    // FPS counter
+    static int frameCount = 0;
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    float delta = (currentTime - lastTime) / 1000.0f;
+    lastTime = currentTime;
+    frameCount++;
+
+    if (frameCount % 20 == 0) {
+        char title[80];
+        sprintf(title, "Particle Simulator (%.2f fps) - %d particles", 1 / delta, num_particles);
+        printf("%f\n", 1 / delta);
+        glutSetWindowTitle(title);
+    }
 
     // Send particle data to device
     cudaMemcpy(device_particles, particles, num_particles * sizeof(Particle), cudaMemcpyHostToDevice);
-    updateParticles<<<blockCount, blockSize>>>(device_particles, num_particles, states);
+    updateParticles<<<blockCount, blockSize>>>(device_particles, num_particles, states, delta);
     checkCollision<<<blockCount, blockSize>>>(device_particles, num_particles);
     // Retrieve particle data from device
     cudaMemcpy(particles, device_particles, num_particles * sizeof(Particle), cudaMemcpyDeviceToHost);
 
     cudaDeviceSynchronize();
-
-    // FPS counter
-    static int frameCount = 0;
-    static int lastTime = 0;
-    int currentTime = glutGet(GLUT_ELAPSED_TIME);
-    frameCount++;
-
-    if (currentTime - lastTime > 1000) {
-        char title[80];
-        sprintf(title, "Particle Simulator (%d fps) - %d particles", frameCount, num_particles);
-        printf("%d\n", frameCount);
-        frameCount = 0;
-        glutSetWindowTitle(title);
-        lastTime = currentTime;
-    }
 
     glutSwapBuffers();
 }
@@ -125,9 +123,10 @@ int main(int argc, char** argv) {
     num_particles = 5;
     particle_size = 0.1f;
     int opt;
+    bool explode = false;
 
     // Command line options
-    while ((opt = getopt(argc, argv, "n:s:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:s:e")) != -1) {
         switch (opt) {
             case 'n':
                 num_particles = strtol(optarg, NULL, 10);
@@ -135,8 +134,12 @@ int main(int argc, char** argv) {
             case 's':
                 particle_size = strtod(optarg, NULL);
                 break;
+            case 'e':
+                // Explode particles from center. Recommend running with a lot of particles with a low size
+                explode = true;
+                break;
             default:
-                fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size] [-e explosion (OPTIONAL)]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -148,25 +151,36 @@ int main(int argc, char** argv) {
         std::mt19937 gen(rd());
 
         // Randomize velocity, position, and mass
-        std::uniform_real_distribution<float> dist(-0.0015, 0.0015);
+        std::uniform_real_distribution<float> dist(-2, 2);
         std::uniform_real_distribution<float> rand(-0.95, 0.95);
-        std::uniform_real_distribution<float> mass(1.5, 5.5);
+        std::uniform_real_distribution<float> mass(1.5, 5);
 
         // Make Particle
         // make random particle velocity        
-        float dx = dist(gen) * 6;
-        float dy = dist(gen) * 6;
-        // make random particle position
-        float x = rand(gen);
-        float y = rand(gen);
+        float dx = dist(gen);
+        float dy = dist(gen);
+
+        float x, y;
+        if (explode) {
+            x = 0;
+            y = 0;
+        } else {
+            x = rand(gen);
+            y = rand(gen);
+        }
+
+
         particles[i] = Particle(Vector(x, y), Vector(dx, dy), mass(gen), particle_size);
     }
+
 
     // Init the device particles
     cudaMalloc((void**)&device_particles, num_particles * sizeof(Particle));
     cudaMalloc((void**)&states, num_particles * sizeof(curandState));
 
     initGL(&argc, argv);
+
+    lastTime = 0;
     glutMainLoop();
 
     // Clean up

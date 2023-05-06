@@ -10,7 +10,7 @@
 Particle::Particle() : position(Vector(0, 0)), velocity(Vector(0, 0)), mass(1), radius(1) {}
 Particle::Particle(const Vector& position, const Vector& velocity, float mass, float radius ) : position(position), velocity(velocity), mass(mass), radius(radius) {}
 
-__device__ const Vector& Particle::getPosition() const {
+__host__ __device__ const Vector& Particle::getPosition() const {
     return position;
 }
 
@@ -42,7 +42,7 @@ __device__ void Particle::setRadius(float radius) {
     this->radius = radius;
 }
 
-void Particle::updatePosition(float deltaTime) {
+__device__ void Particle::updatePosition(float deltaTime) {
     this->position += this->velocity * deltaTime;
 }
 
@@ -108,7 +108,7 @@ __device__ bool Particle::collidesWith(const Particle& other) const {
 }
 
 __device__ void Particle::resolveCollision(Particle& other) {
-    //TODO : https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+    // With help from https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
     Vector p1Pos = this->getPosition();
     Vector p2Pos = other.getPosition();
 
@@ -123,17 +123,19 @@ __device__ void Particle::resolveCollision(Particle& other) {
     double aci = this->getVelocity().dot(collision);
     double bci = other.getVelocity().dot(collision);
 
-    // final velocities after collision
-    double acf = bci;
-    double bcf = aci;
+    // Set final velocities
+    double acf = (aci * (this->getMass() - other.getMass()) + 2 * other.getMass() * bci) / (this->getMass() + other.getMass());
+    double bcf = (bci * (other.getMass() - this->getMass()) + 2 * this->getMass() * aci) / (this->getMass() + other.getMass());
 
     this->setVelocity((this->getVelocity() + collision * (acf - aci) * 1 / this->getMass()));
     other.setVelocity((other.getVelocity() + collision * (bcf - bci) * 1 / other.getMass()));
 
-    //move ball out of collision
+    // Prevent particles from overlapping
     float radiiSum = this->getRadius() + other.getRadius();
     float overlap = radiiSum - distance;
-    this->setPosition(this->getPosition() + collision * overlap / 2);
-    other.setPosition(other.getPosition() - collision * overlap / 2);
-    
+    float overlap1 = overlap * other.getMass() / (this->getMass() + other.getMass());
+    float overlap2 = overlap * this->getMass() / (this->getMass() + other.getMass());
+    this->setPosition(this->getPosition() + collision * overlap1);
+    other.setPosition(other.getPosition() - collision * overlap2);
 }
+

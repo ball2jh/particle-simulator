@@ -23,21 +23,35 @@ int num_particles;
 float particle_size;
 Particle* particles;
 
+int lastTime;
+
 // GL functionality
 bool initGL(int *argc, char **argv);
 
 // OpenGL rendering
 void display() {
 	glClear(GL_COLOR_BUFFER_BIT);
+    
+    // FPS counter
+    static int frameCount = 0;
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    float delta = (currentTime - lastTime) / 1000.0f;
+    lastTime = currentTime;
+    frameCount++;
+
+    if (frameCount % 20 == 0) {
+        char title[80];
+        sprintf(title, "Particle Simulator (%.2f fps) - %d particles", 1 / delta, num_particles);
+        printf("%f\n", 1 / delta);
+        glutSetWindowTitle(title);
+    }
+
 
     for (int i = 0; i < num_particles; i++) {
         // Render the particle
         particles[i].renderCircle();
-        float dx = (float) rand();
-        float scaled = (dx / RAND_MAX) * 2 + 2;
-
         // Update the particle's position, check for wall collision
-        particles[i].updatePosition(scaled);
+        particles[i].updatePosition(delta);
         particles[i].wallBounce();
 
         // Check for collisions with other particles
@@ -46,21 +60,6 @@ void display() {
                 particles[i].resolveCollision(particles[j]);
             }
         }
-    }
-
-    // FPS counter
-    static int frameCount = 0;
-    static int lastTime = 0;
-    int currentTime = glutGet(GLUT_ELAPSED_TIME);
-    frameCount++;
-
-    if (currentTime - lastTime > 1000) {
-        char title[80];
-        sprintf(title, "Particle Simulator Serial (%d fps) - %d particles", frameCount, num_particles);
-        printf("%d\n", frameCount);
-        glutSetWindowTitle(title);
-        frameCount = 0;
-        lastTime = currentTime;
     }
 
     glutSwapBuffers();
@@ -100,9 +99,10 @@ int main(int argc, char** argv) {
     num_particles = 10;
     particle_size = 0.1f;
     int opt;
+    bool explode = false;
 
     // Command line options
-    while ((opt = getopt(argc, argv, "n:s:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:s:e")) != -1) {
         switch (opt) {
             case 'n':
                 num_particles = strtol(optarg, NULL, 10);
@@ -110,8 +110,12 @@ int main(int argc, char** argv) {
             case 's':
                 particle_size = strtod(optarg, NULL);
                 break;
+            case 'e':
+                // Explode particles from center. Recommend running with a lot of particles with a low size
+                explode = true;
+                break;
             default:
-                fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-n num_particles] [-sp particle_size] [-e explosion (OPTIONAL)]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -122,24 +126,29 @@ int main(int argc, char** argv) {
         std::random_device rd;
         std::mt19937 gen(rd());
 
-        std::uniform_real_distribution<float> dist(-0.0015, 0.0015);
+        // Randomize velocity, position, and mass
+        std::uniform_real_distribution<float> dist(-2, 2);
         std::uniform_real_distribution<float> rand(-0.95, 0.95);
-
-        std::uniform_real_distribution<float> mass(1.5, 5.5);
+        std::uniform_real_distribution<float> mass(1.5, 5);
 
         // make random particle velocity        
-        float dx = dist(gen) * 6;
-        float dy = dist(gen) * 6;
+        float dx = dist(gen);
+        float dy = dist(gen);
 
-        // make random particle position
-        float x = rand(gen);
-        float y = rand(gen);
+        float x, y;
+        if (explode) {
+            x = 0;
+            y = 0;
+        } else {
+            x = rand(gen);
+            y = rand(gen);
+        }
 
         particles[i] = Particle(Vector(x, y), Vector(dx, dy), mass(gen), particle_size);
-    } 
-    
+    }
 
     initGL(&argc, argv);
+    lastTime = 0;
     glutMainLoop();
 
     return 0;

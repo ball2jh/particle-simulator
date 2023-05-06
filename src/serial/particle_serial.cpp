@@ -109,10 +109,7 @@ bool Particle::collidesWith(const Particle& other) const {
 }
 
 void Particle::resolveCollision(Particle& other) {
-    
-    
     // With help from https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
-
     Vector p1Pos = this->getPosition();
     Vector p2Pos = other.getPosition();
 
@@ -123,28 +120,22 @@ void Particle::resolveCollision(Particle& other) {
         distance = 1;
     }
 
-    //printf("collision: %f, %f\n", collision.getX(), collision.getY());
-
     // components of velocity along collision vector
     double aci = this->getVelocity().dot(collision);
     double bci = other.getVelocity().dot(collision);
 
     // Set final velocities
-    double acf = bci;
-    double bcf = aci;
+    double acf = (aci * (this->getMass() - other.getMass()) + 2 * other.getMass() * bci) / (this->getMass() + other.getMass());
+    double bcf = (bci * (other.getMass() - this->getMass()) + 2 * this->getMass() * aci) / (this->getMass() + other.getMass());
+
     this->setVelocity((this->getVelocity() + collision * (acf - aci) * 1 / this->getMass()));
     other.setVelocity((other.getVelocity() + collision * (bcf - bci) * 1 / other.getMass()));
-    
+
     // Prevent particles from overlapping
     float radiiSum = this->getRadius() + other.getRadius();
     float overlap = radiiSum - distance;
-    this->setPosition(this->getPosition() + collision * overlap / 2);
-    other.setPosition(other.getPosition() - collision * overlap / 2);
-    
+    float overlap1 = overlap * other.getMass() / (this->getMass() + other.getMass());
+    float overlap2 = overlap * this->getMass() / (this->getMass() + other.getMass());
+    this->setPosition(this->getPosition() + collision * overlap1);
+    other.setPosition(other.getPosition() - collision * overlap2);
 }
-
-
-// void Particle::updateVelocity(const Vector& force, float deltaTime) {
-//     Vector acceleration = force / mass;
-//     velocity += acceleration * deltaTime;
-// }
